@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Admin Panel - Report System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .report-box {
+            background-color: #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+
+        .report-actions {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .admin-button {
+            margin: 5px;
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .admin-button:hover {
+            background-color: #0056b3;
+        }
+
+        #notification {
+            text-align: center;
+            padding: 10px;
+            display: none;
+        }
+
+        #falseReportButton {
+            background-color: #dc3545;
+        }
+
+        #falseReportButton:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Roblox Admin Panel - Report System</h1>
+
+    <div id="reportContainer" class="report-box">
+        <!-- Report will be loaded here -->
+    </div>
+
+    <div class="report-actions">
+        <button class="admin-button" onclick="tempBan()">Temporary Ban</button>
+        <button class="admin-button" onclick="permaBan()">Permanent Ban</button>
+        <button class="admin-button" onclick="ipBan()">IP Ban</button>
+        <button class="admin-button" onclick="warnUser()">Warn User</button>
+        <button class="admin-button" id="falseReportButton" onclick="falseReport()">False Report</button>
+    </div>
+
+    <div id="notification"></div>
+</div>
+
+<script>
+    const reports = generateReports(200); // Generate 200 reports
+    const discordWebhookUrl = "https://discordapp.com/api/webhooks/1290816815416610859/kptqQG-aa0floh_ynfI0OIU6Y7mxFheftMGxYtlckOQSMpAfgd3YSFmxwHp8ZY8Hu9cm"; // Replace with your Discord webhook URL
+    let reportCount = 0; // Count of processed reports
+
+    // Generate 200 reports with appropriate messages matching their reason
+    function generateReports(count) {
+        const categorizedMessages = {
+            "Harassment": ["You are so dumb!", "No one likes you!", "Your game is trash.", "You are so bad at this game.", "I hate you.", "You cheated!", "Noob!", "You’re worthless."],
+            "Scamming": ["Can you give me free Robux?", "Buy my fake items!", "I'll double your Robux if you send me some."],
+            "Phishing": ["Click this link to get free Robux!", "Join my site to get exclusive items!", "I need your password to help you out."],
+            "Toxic Behavior": ["You are the worst player ever!", "You're a failure at this game.", "Everyone should quit because of you.", "You ruined the game."],
+            "False Reporting": ["I'm reporting you for fun.", "I'm making a fake report because I don't like you."],
+            "Cheating": ["I use hacks to win.", "I always use cheats, can't catch me.", "Cheating is the only way to beat this game."],
+            "Inappropriate Language": ["F*** you!", "This game is s***!", "What the hell are you doing, idiot?!"]
+        };
+
+        const reports = [];
+        for (let i = 0; i < count; i++) {
+            const timestamp = generateRandomDate();
+            const reason = getRandomReason(categorizedMessages);
+            const message = getRandomMessage(categorizedMessages[reason]);
+            const isValid = Math.random() > 0.4; // 60% chance the report is valid, 40% chance it's false
+            reports.push({ timestamp, message, reason, isValid });
+        }
+        return reports;
+    }
+
+    // Generate a random date between 08/29/24 and 10/01/24
+    function generateRandomDate() {
+        const start = new Date(2024, 7, 29).getTime(); // August 29, 2024
+        const end = new Date(2024, 9, 1).getTime();    // October 01, 2024
+        const randomDate = new Date(start + Math.random() * (end - start));
+        return randomDate.toLocaleDateString();
+    }
+
+    // Get a random reason from the categorizedMessages object
+    function getRandomReason(categorizedMessages) {
+        const reasons = Object.keys(categorizedMessages);
+        return reasons[Math.floor(Math.random() * reasons.length)];
+    }
+
+    // Get a random message from the selected category
+    function getRandomMessage(messages) {
+        return messages[Math.floor(Math.random() * messages.length)];
+    }
+
+    let currentReportIndex = 0;
+
+    // Load the first report
+    function loadReport() {
+        const report = reports[currentReportIndex];
+        document.getElementById("reportContainer").innerHTML = `
+            <p><strong>Message sent at:</strong> ${report.timestamp}</p>
+            <p><strong>Message:</strong> ${report.message}</p>
+            <p><strong>Reason reported:</strong> ${report.reason}</p>
+            <p>Click "False Report" if this report is not valid.</p>
+        `;
+    }
+
+    // Show notification
+    function showNotification(message, isError = false) {
+        const notification = document.getElementById("notification");
+        notification.textContent = message;
+        notification.style.display = "block";
+        notification.style.backgroundColor = isError ? "#dc3545" : "#28a745";
+        setTimeout(() => notification.style.display = "none", 3000);
+    }
+
+    // Send report information to Discord
+    function sendToDiscord(report) {
+        const payload = {
+            content: `New Report:\n- Message: ${report.message}\n- Reason: ${report.reason}\n- Valid: ${report.isValid}\n- Timestamp: ${report.timestamp}`
+        };
+
+        fetch(discordWebhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        }).then(response => {
+            if (!response.ok) {
+                console.error('Failed to send report to Discord:', response.statusText);
+            }
+        }).catch(error => {
+            console.error('Error sending report to Discord:', error);
+        });
+    }
+
+    // Handle the actions
+    function tempBan() {
+        const report = reports[currentReportIndex];
+        showNotification(`User temporarily banned. Reason: ${report.reason}`);
+        sendToDiscord(report); // Send to Discord
+        reportCount++;
+        nextReport();
+    }
+
+    function permaBan() {
+        const report = reports[currentReportIndex];
+        showNotification(`User permanently banned. Reason: ${report.reason}`);
+        sendToDiscord(report); // Send to Discord
+        reportCount++;
+        nextReport();
+    }
+
+    function ipBan() {
+        const report = reports[currentReportIndex];
+        showNotification(`IP ban applied. Reason: ${report.reason}`);
+        sendToDiscord(report); // Send to Discord
+        reportCount++;
+        nextReport();
+    }
+
+    function warnUser() {
+        const report = reports[currentReportIndex];
+        showNotification(`User warned. Reason: ${report.reason}`);
+        sendToDiscord(report); // Send to Discord
+        reportCount++;
+        nextReport();
+    }
+
+    function falseReport() {
+        const report = reports[currentReportIndex];
+        if (report.isValid) {
+            showNotification("This is not a false report. Action should be taken.", true);
+        } else {
+            showNotification("This report was marked as a false report.");
+        }
+        nextReport();
+    }
+
+    // Move to the next report
+    function nextReport() {
+        currentReportIndex++;
+        if (currentReportIndex < reports.length) {
+            loadReport();
+        } else {
+            document.getElementById("reportContainer").innerHTML = `<p>All reports have been processed. Total reports processed: ${reportCount}</p>`;
+        }
+    }
+
+    // Initialize the report system
+    loadReport();
+</script>
+
+</body>
+</html>
