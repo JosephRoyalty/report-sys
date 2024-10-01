@@ -160,8 +160,10 @@
 
     // Send report information to Discord
     function sendToDiscord(report) {
+        reportCount++; // Increment report count for each report sent
+
         const payload = {
-            content: `New Report:\n- Message: ${report.message}\n- Reason: ${report.reason}\n- Timestamp: ${report.timestamp}`
+            content: `New Report:\n- Timestamp: ${report.timestamp}\n- Message: "${report.message}"\n- Reason: ${report.reason}\n- Count: ${reportCount}`
         };
 
         fetch(discordWebhookUrl, {
@@ -184,7 +186,6 @@
         const report = reports[currentReportIndex];
         showNotification(`User temporarily banned. Reason: ${report.reason}`);
         sendToDiscord(report); // Send to Discord
-        reportCount++;
         nextReport();
     }
 
@@ -192,7 +193,6 @@
         const report = reports[currentReportIndex];
         showNotification(`User permanently banned. Reason: ${report.reason}`);
         sendToDiscord(report); // Send to Discord
-        reportCount++;
         nextReport();
     }
 
@@ -200,7 +200,6 @@
         const report = reports[currentReportIndex];
         showNotification(`IP ban applied. Reason: ${report.reason}`);
         sendToDiscord(report); // Send to Discord
-        reportCount++;
         nextReport();
     }
 
@@ -208,7 +207,6 @@
         const report = reports[currentReportIndex];
         showNotification(`User warned. Reason: ${report.reason}`);
         sendToDiscord(report); // Send to Discord
-        reportCount++;
         nextReport();
     }
 
