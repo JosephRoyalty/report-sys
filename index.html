@@ -161,7 +161,7 @@
     // Send report information to Discord
     function sendToDiscord(report) {
         const payload = {
-            content: `New Report:\n- Message: ${report.message}\n- Reason: ${report.reason}\n- Valid: ${report.isValid}\n- Timestamp: ${report.timestamp}`
+            content: `New Report:\n- Message: ${report.message}\n- Reason: ${report.reason}\n- Timestamp: ${report.timestamp}`
         };
 
         fetch(discordWebhookUrl, {
